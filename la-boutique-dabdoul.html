@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ff6b35">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>">
+<title>La Boutique d'Abdoul</title>
+<style>
+  :root{
+    --bg:#fff6ea;
+    --ink:#5b3a1e;
+    --brand:#ff6b35;
+    --brand-dark:#e05f14;
+    --yellow:#f7b731;
+    --pink:#ff4d8d;
+    --green:#2ecc71;
+    --red:#e74c3c;
+    --cream:#fff3e4;
+    --line:#ffd9ae;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family: ui-rounded, "Comic Sans MS", "Chalkboard SE", "Segoe UI Rounded", "Segoe UI", sans-serif;
+    background: linear-gradient(160deg,#ffe3c2,#ffb37e);
+    color:var(--ink);
+    overscroll-behavior:none;
+    touch-action: manipulation;
+  }
+  #app{
+    position:relative;
+    max-width:520px;
+    margin:0 auto;
+    height:100vh;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    background: linear-gradient(180deg,#fff6ea 0%,#ffeeda 60%,#ffe6cc 100%);
+    box-shadow:0 0 40px rgba(91,58,30,.25);
+  }
+  button{ font-family:inherit; cursor:pointer; border:none; touch-action: manipulation; }
+
+  /* ---------- HUD ---------- */
+  #hud{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:10px 12px;
+    background:linear-gradient(180deg,#ff8c42,#ff6b35);
+    color:#fff;
+    box-shadow:0 4px 10px rgba(91,58,30,.25);
+    z-index:10;
+  }
+  .hud-title{ font-size:13px; font-weight:900; text-shadow:0 2px 0 rgba(91,58,30,.35); text-align:center; line-height:1.15; }
+  .hud-pill{ background:rgba(0,0,0,.18); border-radius:999px; padding:6px 12px; font-weight:900; font-size:16px; white-space:nowrap; }
+  .hud-pill.score{ background:rgba(0,0,0,.25); }
+
+  /* ---------- Customer card ---------- */
+  #customerCard{
+    background:#fff;
+    margin:10px 12px 0;
+    border-radius:20px;
+    padding:10px 12px 12px;
+    box-shadow:0 6px 16px rgba(91,58,30,.18);
+    position:relative;
+    z-index:5;
+  }
+  .c-top{ display:flex; gap:12px; align-items:center; }
+  .avatar{
+    width:64px; height:64px; border-radius:50%; flex:none;
+    background:radial-gradient(circle at 30% 30%, #ffe3c2, #ffb37e);
+    display:flex; align-items:center; justify-content:center; font-size:38px;
+    border:3px solid #fff; box-shadow:0 4px 10px rgba(91,58,30,.25);
+  }
+  .c-meta{ flex:1; min-width:0; }
+  .c-name{ font-weight:900; font-size:16px; }
+  .patience{ height:12px; background:#f1e3d3; border-radius:999px; margin-top:7px; overflow:hidden; }
+  #patienceFill{ height:100%; background:linear-gradient(90deg,#2ecc71,#f1c40f 60%,#e74c3c); border-radius:999px; width:100%; transition:width .2s linear; }
+  .patience-label{ font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#a98a6f; margin-top:2px; }
+  .bubble{
+    margin-top:10px; background:var(--cream); border:2px solid var(--line);
+    border-radius:16px; padding:8px 10px; font-weight:700; font-size:14px; text-align:center;
+    position:relative; min-height:42px; display:flex; align-items:center; justify-content:center;
+  }
+  .bubble::after{
+    content:''; position:absolute; left:26px; top:-8px; border:8px solid transparent;
+    border-top-color:var(--line);
+  }
+
+  /* ---------- Sections ---------- */
+  section{ flex:1; overflow-y:auto; padding:10px 12px 12px; overscroll-behavior:contain; }
+  section h2{ font-size:16px; margin:4px 0 10px; font-weight:900; }
+  .hidden{ display:none !important; }
+
+  /* ---------- Products ---------- */
+  .products{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .prod{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    min-height:88px; border-radius:18px;
+    background:linear-gradient(180deg,#fff,#ffe9d2);
+    box-shadow:0 4px 0 #f0c9a0, 0 6px 12px rgba(91,58,30,.15);
+    color:var(--ink);
+    padding:6px;
+  }
+  .prod:active{ transform:translateY(3px); box-shadow:0 1px 0 #f0c9a0, 0 3px 8px rgba(91,58,30,.15); }
+  .prod-icon{ font-size:30px; }
+  .prod-name{ font-weight:800; font-size:11px; text-align:center; line-height:1.15; }
+  .prod-price{ font-weight:900; font-size:13px; color:var(--brand); }
+
+  /* ---------- Order ---------- */
+  .order-empty{ background:#fff; border:2px dashed #f0c9a0; border-radius:16px; padding:14px; text-align:center; font-weight:700; color:#a98a6f; }
+  #orderChips{ margin-top:8px; }
+  .chip{ display:flex; align-items:center; gap:6px; background:#fff; border-radius:999px; padding:5px 8px; margin:6px 0; box-shadow:0 3px 8px rgba(91,58,30,.12); }
+  .chip[data-id]{ background:linear-gradient(180deg,#fff,#ffeeda); }
+  .chip-btn{ width:26px; height:26px; border-radius:50%; font-size:16px; font-weight:900; color:#fff; background:var(--brand); display:flex; align-items:center; justify-content:center; padding:0; line-height:1; }
+  .chip-btn.plus{ background:var(--green); }
+  .chip-qty{ font-weight:900; min-width:14px; text-align:center; }
+  .chip-name{ font-weight:700; font-size:13px; flex:1; }
+  #orderFooter{ position:sticky; bottom:0; background:#fff; padding:12px; border-radius:18px; box-shadow:0 8px 20px rgba(91,58,30,.25); display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+  #orderTotal{ font-weight:900; font-size:19px; }
+  #orderFooter .big-btn{ width:auto; padding:0 22px; }
+
+  /* ---------- Payment ---------- */
+  #billBox, #changeBox{ background:#fff; border-radius:16px; padding:12px 14px; font-weight:800; font-size:16px; margin-bottom:10px; box-shadow:0 4px 12px rgba(91,58,30,.12); }
+  #changeRow{ display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+  #changeRow input{
+    width:110px; padding:12px; font-size:18px; font-weight:900; text-align:center;
+    border:3px solid #ffd9ae; border-radius:14px; font-family:inherit; color:var(--ink); background:#fffaf4;
+  }
+  .quick-adds{ display:flex; gap:6px; flex-wrap:wrap; }
+  .quick-adds button{ background:#fff; border:2px solid #ffd9ae; border-radius:12px; padding:10px 8px; font-weight:900; color:var(--brand-dark); font-size:14px; box-shadow:0 3px 0 #f0c9a0; }
+  .quick-adds button:active{ transform:translateY(2px); box-shadow:0 1px 0 #f0c9a0; }
+
+  /* ---------- Buttons ---------- */
+  .big-btn{
+    width:100%; padding:16px; border-radius:18px; font-size:18px; font-weight:900; color:#fff;
+    background:linear-gradient(180deg,#ffa94d,#ff7a29);
+    box-shadow:0 5px 0 var(--brand-dark), 0 8px 14px rgba(91,58,30,.25);
+  }
+  .big-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 var(--brand-dark); }
+  .big-btn:disabled{ opacity:.5; }
+  .refuse-btn{
+    width:100%; padding:18px; border-radius:18px; font-size:18px; font-weight:900; color:#fff;
+    background:linear-gradient(180deg,#a29bfe,#6c5ce7);
+    box-shadow:0 5px 0 #5446c9, 0 8px 14px rgba(91,58,30,.25);
+  }
+  .refuse-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #5446c9; }
+
+  /* ---------- Credit ---------- */
+  #creditSection{ text-align:center; padding-top:26px; }
+  .credit-emoji{ font-size:64px; animation:bob 2s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  #creditText{ font-size:16px; font-weight:800; margin:14px 0 20px; }
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:absolute; top:74px; left:50%; transform:translate(-50%,-220%);
+    background:rgba(30,20,10,.92); color:#ffe9c7; padding:10px 16px; border-radius:999px;
+    font-weight:800; font-size:14px; z-index:60; transition:transform .25s ease;
+    max-width:90%; text-align:center;
+  }
+  #toast.show{ transform:translate(-50%,0); }
+
+  /* ---------- End overlay ---------- */
+  #endOverlay{
+    position:absolute; inset:0; background:rgba(60,35,15,.55); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; z-index:70;
+  }
+  .endCard{ width:86%; background:linear-gradient(180deg,#fff,#ffe9d2); border-radius:24px; padding:22px 18px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+  .endCard h1{ font-size:20px; font-weight:900; }
+  #endScore{ font-size:38px; font-weight:900; color:var(--brand); margin:8px 0; }
+  #endTitle{ font-size:18px; font-weight:900; color:#6c5ce7; margin-bottom:12px; }
+  .endStats{ display:flex; justify-content:space-around; background:#fff; border-radius:14px; padding:10px; margin-bottom:16px; font-weight:800; }
+  .endBtns{ display:flex; flex-direction:column; gap:10px; }
+
+  /* ---------- Coins / shake / toast ---------- */
+  .coin{ position:absolute; top:-50px; z-index:40; pointer-events:none; animation:coinFall .9s ease-in forwards; }
+  @keyframes coinFall{ 0%{transform:translateY(0) scale(.5);opacity:0} 20%{opacity:1} 100%{transform:translateY(380px) scale(1.1);opacity:0} }
+  @keyframes shakeScreen{ 0%,100%{transform:translate(0,0)} 15%{transform:translate(-10px,2px)} 30%{transform:translate(10px,-2px)} 45%{transform:translate(-8px,1px)} 60%{transform:translate(8px,-1px)} 75%{transform:translate(-5px,0)} }
+  #app.shake{ animation:shakeScreen .4s ease; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div class="hud-pill">⏱ <span id="timer">1:00</span></div>
+    <div class="hud-title">La Boutique d'Abdoul</div>
+    <div class="hud-pill score">🪙 <span id="score">0</span> FCFA</div>
+  </header>
+
+  <section id="customerCard">
+    <div class="c-top">
+      <div class="avatar" id="avatar">😄</div>
+      <div class="c-meta">
+        <div class="c-name" id="cName">Abdoul</div>
+        <div class="patience"><div id="patienceFill"></div></div>
+        <div class="patience-label" id="patienceLabel">Patience</div>
+      </div>
+    </div>
+    <div class="bubble" id="dialogue">Bienvenue chez Abdoul ! Un client arrive…</div>
+  </section>
+
+  <section id="orderSection">
+    <h2>Commandes</h2>
+    <div class="products" id="products"></div>
+    <div id="orderChips"><div class="order-empty">Touchez les produits pour composer la commande</div></div>
+    <div id="orderFooter">
+      <div id="orderTotal">Total : 0 FCFA</div>
+      <button class="big-btn" id="validateOrder">Valider la commande</button>
+    </div>
+  </section>
+
+  <section id="paySection" class="hidden">
+    <h2>💰 Encaissement</h2>
+    <div id="billBox">Billet de <b id="billAmt">0</b> FCFA</div>
+    <div id="changeBox">Il doit rendre : <b id="owedAmt">0</b> FCFA</div>
+    <div id="changeRow">
+      <input id="changeInput" type="number" inputmode="numeric" placeholder="Montant" />
+      <div id="quickAdds" class="quick-adds">
+        <button type="button" data-v="50">+50</button>
+        <button type="button" data-v="100">+100</button>
+        <button type="button" data-v="500">+500</button>
+        <button type="button" data-v="1000">+1000</button>
+        <button type="button" data-v="5000">+5000</button>
+      </div>
+    </div>
+    <button class="big-btn" id="validatePay">Valider le paiement</button>
+  </section>
+
+  <section id="creditSection" class="hidden">
+    <h2>💳 Le client a un crédit</h2>
+    <div class="credit-emoji">💳</div>
+    <p id="creditText">Ce client veut tout prendre à crédit…</p>
+    <button class="refuse-btn" id="refuseCredit">Refuser le crédit poliment</button>
+  </section>
+
+  <div id="toast"></div>
+
+  <div id="endOverlay">
+    <div class="endCard">
+      <h1>Bilan de la journée d'Abdoul</h1>
+      <div id="endScore">0 FCFA</div>
+      <div id="endTitle">Apprenti de boutique</div>
+      <div class="endStats">
+        <div>Clients satisfaits :<br><b id="endSat">0</b></div>
+        <div>Clients partis énervés :<br><b id="endLost">0</b></div>
+      </div>
+      <div class="endBtns">
+        <button class="big-btn" id="replayBtn">Rejouer</button>
+        <button class="big-btn" id="copyBtn">Copier mon score</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ============================================================
+//  LA BOUTIQUE D'ABDOUL – jeu arcade 2D (HTML5, Web Audio API)
+//  Mode : "Heure de Pointe" – 60 secondes chrono
+// ============================================================
+
+const GAME_SECONDS = 60;
+const TIP_WINDOW_MS = 6000;
+const EVENT_INTERVAL_S = 15;
+
+const PRODUCTS = [
+  { id: "eau",    name: "Sachet d'eau",        price: 50,   icon: "💧" },
+  { id: "pain",   name: "Pain + Sardine",      price: 350,  icon: "🍞" },
+  { id: "credit", name: "Crédit Téléphonique", price: 500,  icon: "📱" },
+  { id: "sucre",  name: "Sucré en sachet",     price: 100,  icon: "🍬" },
+  { id: "pile",   name: "Pile AA",             price: 200,  icon: "🔋" },
+  { id: "savon",  name: "Savon",               price: 250,  icon: "🧼" },
+];
+const PRODUCT_MAP = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+const BILLS = [500, 1000, 2000, 5000, 10000];
+
+const PLURALS = {
+  eau: "Sachets d'eau",
+  pain: "Pains + Sardines",
+  credit: "Crédits téléphoniques",
+  sucre: "Sucrés",
+  pile: "Piles AA",
+  savon: "Savons",
+};
+
+const CLIENT_NAMES = ["Awa", "Mamadou", "Kofi", "Aïcha", "Ousmane", "Nadia", "Bakary", "Fatou"];
+const LEAVES = ["Merci mon gars !", "À la prochaine !", "Tu me sauves la vie !", "Finalement, je prends direct !"];
+
+const $ = (id) => document.getElementById(id);
+
+const timerEl = $("timer");
+const scoreEl = $("score");
+const avatarEl = $("avatar");
+const cNameEl = $("cName");
+const patienceFill = $("patienceFill");
+const patienceLabelEl = $("patienceLabel");
+const dialogueEl = $("dialogue");
+const productsEl = $("products");
+const orderChipsEl = $("orderChips");
+const orderTotalEl = $("orderTotal");
+const validateOrderBtn = $("validateOrder");
+const billAmtEl = $("billAmt");
+const owedAmtEl = $("owedAmt");
+const changeRow = $("changeRow");
+const changeInputEl = $("changeInput");
+const quickAddsEl = $("quickAdds");
+const validatePayBtn = $("validatePay");
+const refuseCreditBtn = $("refuseCredit");
+const creditTextEl = $("creditText");
+const toastEl = $("toast");
+const endOverlay = $("endOverlay");
+const endScoreEl = $("endScore");
+const endTitleEl = $("endTitle");
+const endSatEl = $("endSat");
+const endLostEl = $("endLost");
+const replayBtn = $("replayBtn");
+const copyBtn = $("copyBtn");
+const appEl = $("app");
+
+// ============================================================
+//  ÉTAT DU JEU
+// ============================================================
+const state = {
+  status: "idle", // idle | waiting | pay | credit | left | ended
+  customer: null,
+  revenue: 0,
+  satisfied: 0,
+  lost: 0,
+  served: 0,
+  order: {},
+  change: 0,
+  timerEnd: 0,
+  eventAcc: 0,
+};
+
+let spawnTimeout = null;
+let toastTimer = null;
+let rafId = null;
+let lastTs = 0;
+let running = false;
+let lastTicSecond = -1;
+
+// ============================================================
+//  AUDIO (Web Audio API – aucun fichier externe)
+// ============================================================
+let AC = null;
+let crowdStarted = false;
+
+function audio() {
+  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  if (AC.state === "suspended") AC.resume();
+  return AC;
+}
+function beep(freq, dur, type, vol, delay = 0) {
+  const ctx = audio();
+  const t0 = ctx.currentTime + delay;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function cashSound() {
+  beep(1500, 0.06, "square", 0.14);
+  beep(2100, 0.08, "square", 0.11, 0.05);
+  beep(900, 0.14, "square", 0.10, 0.12);
+}
+function errorSound() { beep(180, 0.22, "sawtooth", 0.18); beep(120, 0.3, "square", 0.14, 0.03); }
+function blip() { beep(880, 0.07, "square", 0.08); }
+function tipSound() { beep(700, 0.08, "sine", 0.12); beep(950, 0.08, "sine", 0.12, 0.09); beep(1300, 0.14, "sine", 0.12, 0.18); }
+function ticTacSound() { beep(2100, 0.05, "square", 0.07); beep(2600, 0.07, "square", 0.07, 0.06); }
+function startCrowd() {
+  if (crowdStarted) return;
+  crowdStarted = true;
+  const ctx = audio();
+  const len = ctx.sampleRate * 2;
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  const f = ctx.createBiquadFilter();
+  f.type = "lowpass"; f.frequency.value = 700;
+  const g = ctx.createGain();
+  g.gain.value = 0.015;
+  src.connect(f); f.connect(g); g.connect(ctx.destination);
+  src.start();
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function fmt(n) { n = Math.round(n); const s = n.toString(); const out = s.replace(/\B(?=(\d{3})+(?!\d))/g, " "); return out + " FCFA"; }
+function fmtTime(sec) { const m = Math.floor(sec / 60); const s = Math.floor(sec % 60); return m + ":" + s.toString().padStart(2, "0"); }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function computeTotal(qty) {
+  let t = 0;
+  for (const [id, q] of Object.entries(qty || {})) {
+    const p = PRODUCT_MAP[id];
+    if (p) t += p.price * (q || 0);
+  }
+  return t;
+}
+
+function requestText(qty) {
+  const parts = [];
+  for (const [id, q] of Object.entries(qty || {})) {
+    if (!q) continue;
+    const p = PRODUCT_MAP[id];
+    parts.push(q > 1 ? q + " " + (PLURALS[id] || p.name) : q + " " + p.name);
+  }
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0];
+  return parts.slice(0, -1).join(", ") + " et " + parts[parts.length - 1];
+}
+
+function randomBill() { return BILLS[Math.floor(Math.random() * BILLS.length)]; }
+
+function randomRequest() {
+  for (let tries = 0; tries < 25; tries++) {
+    const count = 1 + Math.floor(Math.random() * 3);
+    const qty = {};
+    for (let i = 0; i < count; i++) {
+      const pid = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)].id;
+      qty[pid] = (qty[pid] || 0) + 1;
+    }
+    if (computeTotal(qty) <= 500) { return qty; }
+  }
+  const qty = { eau: 1 }; return qty;
+}
+
+function customerText(c) {
+  if (c.sleepy) {
+    return "J’ai marché depuis le village… juste un sachet d’eau, j’avais tellement soif ! Voici un billet de 10 000 FCFA. Rendez 9 950 FCFA, vite !";
+  }
+  if (c.status === "waiting") {
+    const lines = [
+      "Je voudrais " + requestText(c.qty) + " !",
+      "Tiens, je voudrais " + requestText(c.qty) + ". Faut pas faire de gaspi !",
+      "Parfait, alors : " + requestText(c.qty) + " !",
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+  if (c.status === "pay") {
+    return "Tiens, voilà un billet de " + c.bill + " FCFA. Rendez " + c.owed + " FCFA.";
+  }
+  if (c.status === "credit") return "Si c’est pas trop compliqué… je pourrais régler à crédit ?";
+  if (c.status === "left") return LEAVES[Math.floor(Math.random() * LEAVES.length)];
+  return "";
+}
+
+function exprFor(p, sleepy) {
+  if (sleepy) return "🥱";
+  if (p >= 70) return "😊";
+  if (p >= 40) return "🙂";
+  if (p >= 20) return "😐";
+  return "😠";
+}
+
+function patienceColor(p) {
+  if (p > 50) return "linear-gradient(90deg,#2ecc71,#a4e8b8)";
+  if (p > 25) return "linear-gradient(90deg,#f1c40f,#f8e28a)";
+  return "linear-gradient(90deg,#e74c3c,#f1948a)";
+}
+
+function setPatience(p) {
+  patienceFill.style.width = Math.max(0, Math.min(100, p)) + "%";
+  patienceFill.style.background = patienceColor(p);
+}
+
+// ============================================================
+//  SPAWN / EVENTS
+// ============================================================
+function clearSpawn() { if (spawnTimeout) { clearTimeout(spawnTimeout); spawnTimeout = null; } }
+function scheduleSpawn() {
+  clearSpawn();
+  spawnTimeout = setTimeout(() => spawnCustomer("normal"), 1800 + Math.random() * 2600);
+}
+function spawnCustomer(type) {
+  clearSpawn();
+  const sleepy = type === "sleepy";
+  const credit = type === "credit";
+  const qty = sleepy ? { eau: 1 } : randomRequest();
+  const status = credit ? "credit" : "waiting";
+  state.status = status;
+  state.order = {};
+  state.change = 0;
+  state.customer = {
+    id: Math.random().toString(36).slice(2),
+    name: sleepy ? "Babouk" : pick(CLIENT_NAMES),
+    emoji: sleepy ? "🥱" : pick(["👨", "👩", "👴", "👵", "🧑", "👱‍♀️"]),
+    patience: sleepy ? 80 : 100,
+    status: status,
+    qty: qty,
+    total: computeTotal(qty),
+    bill: sleepy ? 10000 : randomBill(),
+    owed: sleepy ? 9950 : randomBill() - computeTotal(qty),
+    arrivedAt: performance.now(),
+    sleepy: sleepy,
+    credit: credit,
+  };
+  render();
+}
+
+function fireEvent() {
+  const roll = Math.random();
+  if (roll < 0.5) {
+    if (state.customer && (state.status === "waiting" || state.status === "pay")) {
+      state.customer.patience = Math.max(0, state.customer.patience / 2);
+      toast("💢 Client pressé ! Sa patience est divisée par deux !");
+      blip();
+    }
+  } else if (roll < 0.8) {
+    clearSpawn();
+    spawnCustomer("sleepy");
+    toast("🌅 C’est 6h du matin… Billet de 10 000 FCFA ! Rendez 9 950 FCFA vite !");
+  } else {
+    if (state.status === "waiting" && state.customer) {
+      state.status = "credit";
+      state.customer.status = "credit";
+      state.customer.bill = 0;
+      state.customer.owed = 0;
+      state.customer.credit = true;
+      toast("💳 Ce client veut tout prendre à crédit…");
+      render();
+    } else {
+      clearSpawn();
+      spawnCustomer("credit");
+    }
+  }
+}
+
+// ============================================================
+//  GAME LOOP
+// ============================================================
+function loop(ts) {
+  if (!running) return;
+  const dt = Math.min(0.1, (ts - lastTs) / 1000);
+  lastTs = ts;
+  update(dt);
+  rafId = requestAnimationFrame(loop);
+}
+function startLoop() {
+  if (running) return;
+  running = true;
+  lastTs = performance.now();
+  cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
+}
+function stopLoop() { running = false; cancelAnimationFrame(rafId); }
+
+function update(dt) {
+  const now = performance.now();
+  const remaining = Math.max(0, state.timerEnd - now);
+  timerEl.textContent = fmtTime(Math.ceil(remaining / 1000));
+  if (remaining <= 0) { endGame(); return; }
+
+  state.eventAcc += dt;
+  if (state.eventAcc >= EVENT_INTERVAL_S) { state.eventAcc = 0; fireEvent(); }
+
+  if (remaining <= 10000 && lastTicSecond !== Math.ceil(remaining / 1000)) {
+    lastTicSecond = Math.ceil(remaining / 1000);
+    ticTacSound();
+  }
+
+  checkPatience(dt);
+}
+
+function checkPatience(dt) {
+  const c = state.customer;
+  if (!c) return;
+  if (state.status !== "waiting" && state.status !== "pay") return;
+  const p = Math.max(0, c.patience - dt);
+  c.patience = p;
+  setPatience(p);
+  patienceLabelEl.textContent = Math.ceil(p) + " s";
+  avatarEl.textContent = exprFor(p, c.sleepy);
+  if (p <= 0) leaveCustomer("angry");
+}
+
+function leaveCustomer(reason) {
+  if (!state.customer || state.status === "left" || state.status === "ended") return;
+  state.customer.status = "left";
+  state.status = "left";
+  if (reason === "angry") state.lost++;
+  clearSpawn();
+  setTimeout(() => {
+    state.status = "idle";
+    state.customer = null;
+    scheduleSpawn();
+  }, 2400);
+}
+
+// ============================================================
+//  TRANSACTIONS
+// ============================================================
+function validateOrder() {
+  const mine = state.order;
+  const theirs = state.customer ? state.customer.qty : {};
+  const theirsClean = {};
+  for (const [k, q] of Object.entries(theirs)) if (q) theirsClean[k] = q;
+  const mineKeys = Object.keys(mine).filter(k => mine[k] > 0);
+  const ok = mineKeys.length === Object.keys(theirsClean).length &&
+    mineKeys.every(k => theirsClean[k] === mine[k]);
+  if (!ok) {
+    errorSound();
+    shakeScreen();
+    toast("Ce n’est pas ça ! Le client fronce les sourcils…");
+    state.customer.patience = Math.max(0, state.customer.patience - 30);
+    if (state.customer.patience <= 0) leaveCustomer("angry");
+    return;
+  }
+  const total = computeTotal(mine);
+  state.status = "pay";
+  state.customer.bill = randomBill();
+  state.customer.owed = state.customer.bill - total;
+  state.change = 0;
+  render();
+}
+
+function validatePayment() {
+  const owed = state.customer ? state.customer.owed : 0;
+  const entered = parseInt(state.change, 10) || 0;
+  if (entered !== owed) {
+    errorSound();
+    shakeScreen();
+    toast("Mauvaise monnaie ! Le client est vexé…");
+    state.customer.patience = Math.max(0, state.customer.patience - 30);
+    state.change = 0;
+    render();
+    if (state.customer && state.customer.patience <= 0) leaveCustomer("angry");
+    return;
+  }
+  const c = state.customer;
+  const tip = (performance.now() - c.arrivedAt) < TIP_WINDOW_MS ? 200 : 0;
+  state.revenue += c.total + tip;
+  state.satisfied++;
+  state.served++;
+  scoreEl.textContent = String(Math.round(state.revenue));
+  cashSound();
+  if (tip > 0) tipSound();
+  spawnCoins();
+  leaveCustomer("sold");
+}
+
+function refuseCredit() {
+  if (state.status !== "credit") return;
+  state.lost++;
+  state.status = "left";
+  state.customer.status = "left";
+  clearSpawn();
+  setTimeout(() => { state.status = "idle"; state.customer = null; scheduleSpawn(); }, 2200);
+}
+
+// ============================================================
+//  COINS + TOAST + SHAKE
+// ============================================================
+function spawnCoins() {
+  const icons = ["🪙", "💰", "🪙"];
+  for (let i = 0; i < 6; i++) {
+    const el = document.createElement("div");
+    el.className = "coin";
+    el.textContent = icons[i % 3];
+    el.style.left = (12 + Math.random() * 76) + "%";
+    el.style.fontSize = (22 + Math.random() * 14) + "px";
+    el.addEventListener("animationend", () => el.remove());
+    $("app").appendChild(el);
+  }
+}
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+}
+function shakeScreen() { const el = $("app"); el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
+
+// ============================================================
+//  RENDU
+// ============================================================
+function render() {
+  renderCustomer();
+  renderOrderSection();
+  renderPaySection();
+  renderCreditSection();
+  renderOrderUI();
+}
+
+function renderCustomer() {
+  const c = state.customer;
+  if (!c || state.status === "ended") {
+    avatarEl.textContent = "😴";
+    cNameEl.textContent = "Abdoul";
+    setPatience(0);
+    patienceLabelEl.textContent = "Patience";
+    dialogueEl.textContent = "Bienvenue chez Abdoul ! Un client arrive…";
+    return;
+  }
+  avatarEl.textContent = exprFor(c.patience, c.sleepy);
+  cNameEl.textContent = c.name;
+  setPatience(c.patience);
+  dialogueEl.textContent = customerText(c);
+}
+
+function renderOrderSection() {
+  if (state.status === "waiting") $("orderSection").classList.remove("hidden");
+  else $("orderSection").classList.add("hidden");
+}
+
+function renderPaySection() {
+  if (state.status === "pay") $("paySection").classList.remove("hidden");
+  else $("paySection").classList.add("hidden");
+  if (state.status === "pay" && state.customer) {
+    billAmtEl.textContent = String(state.customer.bill);
+    owedAmtEl.textContent = String(state.customer.owed);
+    if (state.customer.owed > 0) {
+      $("changeRow").classList.remove("hidden");
+      changeInputEl.value = state.change;
+      validatePayBtn.textContent = "Valider le paiement";
+    } else {
+      $("changeRow").classList.add("hidden");
+      validatePayBtn.textContent = "C’est exact ! Valider";
+    }
+  }
+}
+
+function renderCreditSection() {
+  if (state.status === "credit") $("creditSection").classList.remove("hidden");
+  else $("creditSection").classList.add("hidden");
+}
+
+function renderOrderUI() {
+  orderChipsEl.innerHTML = '<div class="order-empty">Touchez les produits pour composer la commande</div>';
+  const entries = Object.entries(state.order).filter(([, q]) => q > 0);
+  if (entries.length === 0) {
+    orderTotalEl.textContent = "Total : 0 FCFA";
+    return;
+  }
+  let total = 0;
+  const wrap = document.createElement("div");
+  for (const [id, q] of entries) {
+    const p = PRODUCT_MAP[id];
+    total += p.price * q;
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.dataset.id = id;
+    chip.innerHTML =
+      '<button class="chip-btn minus" type="button">−</button>' +
+      '<span class="chip-qty">' + q + "</span>" +
+      '<button class="chip-btn plus" type="button">+</button>' +
+      '<span class="chip-name">' + p.icon + " " + p.name + "</span>";
+    wrap.appendChild(chip);
+  }
+  orderChipsEl.innerHTML = "";
+  orderChipsEl.appendChild(wrap);
+  orderTotalEl.textContent = "Total : " + fmt(total);
+}
+
+// ============================================================
+//  ÉVÉNEMENTS UI
+// ============================================================
+productsEl.addEventListener("pointerdown", (e) => {
+  const btn = e.target.closest(".prod");
+  if (!btn) return;
+  if (state.status !== "waiting") return;
+  const id = btn.dataset.id;
+  state.order[id] = (state.order[id] || 0) + 1;
+  renderOrderUI();
+});
+orderChipsEl.addEventListener("click", (e) => {
+  const btn = e.target.closest(".chip-btn");
+  if (!btn) return;
+  const chip = btn.closest(".chip");
+  const id = chip.dataset.id;
+  if (btn.classList.contains("minus")) {
+    state.order[id] = Math.max(0, (state.order[id] || 0) - 1);
+    if (state.order[id] <= 0) delete state.order[id];
+  } else {
+    state.order[id] = (state.order[id] || 0) + 1;
+  }
+  renderOrderUI();
+});
+validateOrderBtn.addEventListener("click", () => { if (state.status === "waiting" && state.customer) validateOrder(); });
+validatePayBtn.addEventListener("click", () => { if (state.status === "pay" && state.customer) validatePayment(); });
+refuseCreditBtn.addEventListener("click", () => refuseCredit());
+quickAddsEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-v]");
+  if (!btn) return;
+  state.change += parseInt(btn.dataset.v, 10);
+  changeInputEl.value = state.change;
+});
+changeInputEl.addEventListener("input", (e) => { state.change = parseInt(changeInputEl.value, 10) || 0; });
+
+function initProducts() {
+  productsEl.innerHTML = "";
+  for (const p of PRODUCTS) {
+    const b = document.createElement("button");
+    b.className = "prod";
+    b.dataset.id = p.id;
+    b.type = "button";
+    b.innerHTML = '<span class="prod-icon">' + p.icon + "</span>" +
+      '<span class="prod-name">' + p.name + "</span>" +
+      '<span class="prod-price">' + p.price + " FCFA</span>";
+    productsEl.appendChild(b);
+  }
+}
+
+// ============================================================
+//  FIN DE PARTIE
+// ============================================================
+function titleFor(revenue) {
+  if (revenue >= 12000) return "Légende du Commerce";
+  if (revenue >= 7000) return "Boss du Quartier";
+  if (revenue >= 3500) return "Habitué du Comptoir";
+  if (revenue >= 1500) return "Apprenti de Boutique";
+  return "Débutant Courageux";
+}
+function endGame() {
+  stopLoop();
+  clearSpawn();
+  state.status = "ended";
+  endOverlay.classList.remove("hidden");
+  endScoreEl.textContent = fmt(state.revenue);
+  endTitleEl.textContent = titleFor(state.revenue);
+  endSatEl.textContent = String(state.satisfied);
+  endLostEl.textContent = String(state.lost);
+}
+function startGame() {
+  state.status = "idle";
+  state.customer = null;
+  state.revenue = 0;
+  state.satisfied = 0;
+  state.lost = 0;
+  state.served = 0;
+  state.order = {};
+  state.change = 0;
+  state.eventAcc = 0;
+  endOverlay.classList.add("hidden");
+  $("orderSection").classList.add("hidden");
+  $("paySection").classList.add("hidden");
+  $("creditSection").classList.add("hidden");
+  state.timerEnd = performance.now() + GAME_SECONDS * 1000;
+  scoreEl.textContent = "0";
+  updateTimer();
+  scheduleSpawn();
+  startLoop();
+}
+function updateTimer() {
+  const remaining = Math.max(0, state.timerEnd - performance.now());
+  timerEl.textContent = fmtTime(Math.ceil(remaining / 1000));
+}
+
+replayBtn.addEventListener("click", startGame);
+copyBtn.addEventListener("click", () => {
+  const text = "🏪 La Boutique d'Abdoul – Heure de Pointe !\n⏱️ Recette : " + fmt(state.revenue) + "\n😄 Clients satisfaits : " + state.satisfied + "\n🏆 Titre : " + titleFor(state.revenue) + "\nAbdoul vient de clôturer sa journée. Rejoins-moi pour battre mon score !";
+  const done = () => toast("✅ Score copié !");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text));
+  } else fallbackCopy(text);
+});
+function fallbackCopy(text) { toast("⚠️ Copie impossible, fais une capture !"); }
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  initProducts();
+  renderOrderUI();
+  startGame();
+}
+document.addEventListener("pointerdown", () => { audio(); startCrowd(); }, { once: true });
+window.addEventListener("load", init);
+</script>
+</body>
+</html>
